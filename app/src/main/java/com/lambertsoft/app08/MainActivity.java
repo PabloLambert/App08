@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,9 +17,10 @@ import java.util.Calendar;
 
 
 public class MainActivity extends ActionBarActivity {
+    private final static String TAG = MainActivity.class.getSimpleName();
     AlarmManager alarmManager;
     PendingIntent pendingSvc;
-    long interval;
+    EditText textInterval;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,11 +31,8 @@ public class MainActivity extends ActionBarActivity {
 
         Button buttonStart = (Button) findViewById(R.id.buttonStart);
         Button buttonStop = (Button)findViewById(R.id.buttonStop);
-        EditText textInterval = (EditText) findViewById(R.id.textInterval);
+        textInterval = (EditText) findViewById(R.id.textInterval);
 
-        interval = Long.parseLong(textInterval.getText().toString());
-        if (interval <= 0 )
-            interval = 20;
 
         Intent intent = new Intent();
         Context myContext = getApplicationContext();
@@ -43,13 +42,20 @@ public class MainActivity extends ActionBarActivity {
         buttonStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis(),interval * 1000, pendingSvc );
+
+                Log.d(TAG, "onClick - starting alarm");
+
+                long interval = Long.parseLong(textInterval.getText().toString());
+                if (interval <= 0 ) interval = 20;
+
+                alarmManager.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + interval * 1000 ,interval * 1000, pendingSvc );
             }
         });
 
         buttonStop.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d(TAG, "onClick - stoping alarm");
                 alarmManager.cancel(pendingSvc);
             }
         });
