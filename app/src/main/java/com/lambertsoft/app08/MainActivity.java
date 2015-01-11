@@ -4,6 +4,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,8 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-
-import java.util.Calendar;
+import android.widget.TextView;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -21,6 +21,9 @@ public class MainActivity extends ActionBarActivity {
     AlarmManager alarmManager;
     PendingIntent pendingSvc;
     EditText textInterval;
+    TextView textAndroidId;
+    EditText textThreshold;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,21 +35,30 @@ public class MainActivity extends ActionBarActivity {
         Button buttonStart = (Button) findViewById(R.id.buttonStart);
         Button buttonStop = (Button)findViewById(R.id.buttonStop);
         textInterval = (EditText) findViewById(R.id.textInterval);
+        textAndroidId = (TextView) findViewById(R.id.textAndriodId);
+        textThreshold = (EditText) findViewById(R.id.textThreshold);
 
 
-        Intent intent = new Intent();
-        Context myContext = getApplicationContext();
-        intent.setClass(myContext, BackgroundService.class);
-        pendingSvc = PendingIntent.getService(myContext, 0, intent, 0);
+
+        String android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+        textAndroidId.setText(android_id);
+
 
         buttonStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 Log.d(TAG, "onClick - starting alarm");
-
                 long interval = Long.parseLong(textInterval.getText().toString());
                 if (interval <= 0 ) interval = 20;
+
+                Intent intent = new Intent();
+                Context myContext = getApplicationContext();
+                intent.setClass(myContext, BackgroundService.class);
+                int threshold = Integer.parseInt(textThreshold.getText().toString());
+                Log.d(TAG, "threshold: " + threshold);
+                intent.putExtra("threshold", threshold);
+                pendingSvc = PendingIntent.getService(myContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
                 alarmManager.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + interval * 1000 ,interval * 1000, pendingSvc );
             }
@@ -84,4 +96,5 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
 }
