@@ -10,6 +10,7 @@ import com.kinvey.android.AsyncAppData;
 import com.kinvey.android.Client;
 import com.kinvey.android.callback.KinveyListCallback;
 import com.kinvey.android.callback.KinveyUserCallback;
+import com.kinvey.java.AppData;
 import com.kinvey.java.Query;
 import com.kinvey.java.User;
 
@@ -21,58 +22,55 @@ import com.kinvey.java.User;
  * TODO: Customize class - update intent actions and extra parameters.
  */
 public class BackgroundService extends IntentService {
-    Client myKinveyClient;
-    int count;
     static final private String TAG = BackgroundService.class.getSimpleName();
 
     public BackgroundService() {
 
         super("BackgroundService");
-        count = 0;
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
 
-        Log.d(TAG, "onHandleIntent..." + count);
-        count ++;
-        /*
-        if (myKinveyClient == null ) {
-            myKinveyClient = new Client.Builder("kid_WyE5rmap_", "b5f06467ecea486096b5e47104e4e098", getApplicationContext()).build();
+        String android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+        Log.d(TAG, "onHandleIntent..." + android_id);
 
-            myKinveyClient.user().login(new KinveyUserCallback() {
-                @Override
-                public void onFailure(Throwable error) {
-                    Log.e(TAG, "Login Failure", error);
-                }
-                @Override
-                public void onSuccess(User result) {
-                    Log.i(TAG, "Logged in a new implicit user with id: " + result.getId());
-                }
-            });
+        try {
+            Client myKinveyClient = new Client.Builder("kid_WyE5rmap_", "b5f06467ecea486096b5e47104e4e098", getApplicationContext()).build();
+
+            if (myKinveyClient.user().isUserLoggedIn() == false ){
+                myKinveyClient.user().loginBlocking().execute();
+            }
+
+            AppData<Counter> data = myKinveyClient.appData("Counter", Counter.class);
+
+            Query myQuery = myKinveyClient.query();
+            myQuery.equals("AndroidId", android_id);
+
+            Counter[] result = data.getBlocking(myQuery).execute();
+
+            if (result == null ) {
+                Counter counter = new Counter(android_id, 1);
+                data.saveBlocking(counter).execute();
+                Log.d(TAG, "counter 0");
+            } else {
+
+                Counter newCounter = result[0];
+                Integer i = newCounter.getCounter();
+                newCounter.setCounter(i + 1);
+                data.saveBlocking(newCounter).execute();
+                Log.d(TAG, "counter " + i);
+            }
+
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error " + e.toString());
         }
 
-        AsyncAppData<Counter> data = myKinveyClient.appData("Counter", Counter.class);
 
-        Query myQuery = myKinveyClient.query();
-        myQuery.equals("AndroidId", Settings.Secure.ANDROID_ID);
 
-        data.get(myQuery, new KinveyListCallback<Counter>() {
-                @Override
-                public void onSuccess(Counter[] result) {
-                        Log.d(TAG, "received" + result.length);
-                    }
 
-                    @Override
-                public void onFailure(Throwable error) {
-                        Log.e(TAG, "error" + error.toString());
-                    }
-                }
 
-        );
-*/
-
-        
     }
 
 

@@ -59,7 +59,7 @@
             android:layout_alignBottom="@+id/textView"
             android:layout_toRightOf="@+id/textView"
             android:layout_toEndOf="@+id/textView"
-            android:text="20" />
+            android:text="5" />
     </LinearLayout>
 
 </RelativeLayout>
