@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.kinvey.android.AsyncAppData;
 import com.kinvey.android.Client;
@@ -41,6 +42,7 @@ public class BackgroundService extends IntentService {
         String android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
 
         Log.d(TAG, "onHandleIntent: " + android_id + "  - thr: " + thr);
+        //Toast.makeText(getApplicationContext(), "onHandleIntent...", Toast.LENGTH_SHORT).show();
 
         try {
             Client myKinveyClient = new Client.Builder("kid_WyE5rmap_", "b5f06467ecea486096b5e47104e4e098", getApplicationContext()).build();
@@ -61,7 +63,7 @@ public class BackgroundService extends IntentService {
             if (result == null ) {
                 Counter counter = new Counter(android_id, c);
                 data.saveBlocking(counter).execute();
-                Log.d(TAG, "counter 0");
+                Log.d(TAG, "counter 1");
             } else {
 
                 Counter newCounter = result[0];
@@ -71,6 +73,11 @@ public class BackgroundService extends IntentService {
                 data.saveBlocking(newCounter).execute();
                 Log.d(TAG, "counter " + i);
             }
+            Intent counterIntent = new Intent();
+            counterIntent.setAction("com.lambertsoft.app08.COUNTER");
+            counterIntent.addCategory(Intent.CATEGORY_DEFAULT);
+            counterIntent.putExtra("COUNTER", c);
+            sendBroadcast(counterIntent);
 
             if (c == thr) {
                 Log.d(TAG, "Notification...");

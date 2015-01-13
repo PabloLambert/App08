@@ -2,8 +2,10 @@ package com.lambertsoft.app08;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -14,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -23,6 +26,8 @@ public class MainActivity extends ActionBarActivity {
     EditText textInterval;
     TextView textAndroidId;
     EditText textThreshold;
+    TextView textCounter;
+    CounterReceiver counterReceiver;
 
 
     @Override
@@ -37,6 +42,7 @@ public class MainActivity extends ActionBarActivity {
         textInterval = (EditText) findViewById(R.id.textInterval);
         textAndroidId = (TextView) findViewById(R.id.textAndriodId);
         textThreshold = (EditText) findViewById(R.id.textThreshold);
+        textCounter = (TextView) findViewById(R.id.textCounter);
 
 
 
@@ -61,6 +67,10 @@ public class MainActivity extends ActionBarActivity {
                 pendingSvc = PendingIntent.getService(myContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
                 alarmManager.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + interval * 1000 ,interval * 1000, pendingSvc );
+
+                //Toast.makeText(myContext, "onClick - starting alarm", Toast.LENGTH_SHORT).show();
+
+
             }
         });
 
@@ -72,8 +82,18 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+        counterReceiver = new CounterReceiver();
+        IntentFilter filter = new IntentFilter("com.lambertsoft.app08.COUNTER");
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        registerReceiver(counterReceiver, filter);
+
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(counterReceiver);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -95,6 +115,15 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public class CounterReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int c = intent.getIntExtra("COUNTER", 0);
+            textCounter.setText(String.valueOf(c));
+        }
     }
 
 }
